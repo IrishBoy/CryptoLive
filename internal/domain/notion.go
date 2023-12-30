@@ -8,7 +8,13 @@ type NotionClient struct {
 	BaseURL string
 	APIKey  string
 }
-
+type GetTablesResponse struct {
+	Object     string `json:"object"`
+	Results    []any  `json:"results"`
+	NextCursor any    `json:"next_cursor"`
+	HasMore    bool   `json:"has_more"`
+	RequestID  string `json:"request_id"`
+}
 type GetTableRequest struct {
 }
 

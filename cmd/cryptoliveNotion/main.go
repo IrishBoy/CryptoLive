@@ -1,20 +1,17 @@
-// cmd/main.go
 package main
 
 import (
-	"fmt"
-
 	"github.com/IrishBoy/CryptoLive/internal/domain"
+	notionHandler "github.com/IrishBoy/CryptoLive/internal/handlers/notion"
 	"github.com/IrishBoy/CryptoLive/internal/providers/binance"
+	"github.com/IrishBoy/CryptoLive/internal/providers/notion"
 )
 
 func main() {
-	// Create an instance of the Notion type
-	// notionInstance := &notion.Notion{
-	// 	NotionClient: domain.NotionClient{
-	// 		APIKey: "",
-	// 	}, // Initialize with an appropriate implementation
-	// }
+	notionClient := domain.NewNotionClient("")
+	notionInstance := &notion.Notion{
+		NotionClient: *notionClient,
+	}
 
 	binanceClient := domain.NewBinanceClient()
 
@@ -22,8 +19,10 @@ func main() {
 	binanceInstance := &binance.Binance{
 		BinanceClient: *binanceClient,
 	}
-	price, err := binanceInstance.GetCoinPrice("BTC")
-	fmt.Print(price, err)
-	// notionInstance.GetDatabase("")
-	// notionInstance.UpdateDatabase("123123", "321123", 123.33, 123.33)
+
+	// Create an instance of NotionTables
+	notionTables := notionHandler.New(notionInstance, binanceInstance)
+
+	// Use the instance to update databases
+	notionTables.UpdateDatabase()
 }

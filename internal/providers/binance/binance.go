@@ -31,8 +31,6 @@ func (b *Binance) makeRequest(method string, url string, payloadBytes []byte) (*
 	return client.Do(req)
 }
 
-// ...
-
 func (b *Binance) GetCoinPrice(coin string) (float64, error) {
 	url := CreateURLCoinPrice(b.BinanceClient.BaseURL, coin)
 	resp, err := b.makeRequest(http.MethodGet, url, nil)

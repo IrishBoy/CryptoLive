@@ -45,32 +45,109 @@ func (n *Notion) makeRequest(method string, url string, payloadBytes []byte) (*h
 }
 
 // GetDatabase retrieves data from a Notion database using the specified tableID.
-func (n *Notion) GetDatabase(tableID string) {
+func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 	url := CreateURLDatabase(n.NotionClient.BaseURL, "databases", tableID)
-	resp, err := n.makeRequest(http.MethodPost, url, nil)
+
+	response, err := n.makeRequest(http.MethodPost, url, nil)
 	if err != nil {
 		fmt.Println("Error making request:", err)
-		return
+		return domain.NotionTable{}, err
 	}
-	defer resp.Body.Close()
+	defer response.Body.Close()
+	var resp map[string]interface{}
+	if err := json.NewDecoder(response.Body).Decode(&resp); err != nil {
+		fmt.Println("Error decoding response:", err)
+		return domain.NotionTable{}, err
+	}
 
-	fmt.Println(resp)
+	var notionTable domain.NotionTable // Declare notionTable outside the loop
+	var rows []domain.NotionTableRow
+
+	for _, v := range resp["results"].([]interface{}) {
+		properties, ok := v.(map[string]interface{})["properties"].(map[string]interface{})
+		if !ok {
+			fmt.Println("Error: 'properties' not found or not a map")
+			continue
+		}
+
+		coinSelect, ok := properties["Coin bought"].(map[string]interface{})["select"]
+		if !ok || coinSelect == nil {
+			fmt.Println("Error: 'Coin bought' or 'select' is nil or not found")
+			continue
+		}
+
+		coin, ok := coinSelect.(map[string]interface{})["name"].(string)
+		if !ok {
+			fmt.Println("Error: 'name' not found or not a string")
+			continue
+		}
+
+		idTitle, ok := properties["ID"].(map[string]interface{})["title"]
+		if !ok || idTitle == nil {
+			fmt.Println("Error: 'ID' or 'title' is nil or not found")
+			continue
+		}
+
+		idText, ok := idTitle.([]interface{})[0].(map[string]interface{})["text"]
+		if !ok || idText == nil {
+			fmt.Println("Error: 'text' is nil or not found")
+			continue
+		}
+
+		id, ok := idText.(map[string]interface{})["content"].(string)
+		if !ok {
+			fmt.Println("Error: 'content' not found or not a string")
+			continue
+		}
+
+		row := domain.NotionTableRow{
+			ID:                id,
+			Coin:              coin,
+			OldCoinPrice:      properties["Coin Price"].(map[string]interface{})["formula"].(map[string]interface{})["number"].(float64),
+			CurrentCointPrice: 0,
+			CoinAmount:        properties["Bought Amount"].(map[string]interface{})["number"].(float64),
+			Gain:              0,
+			PercentageGain:    0,
+			SoldCoin:          "USDT",
+			SoldAmount:        properties["Sold Amount"].(map[string]interface{})["number"].(float64),
+		}
+
+		rows = append(rows, row)
+
+	}
+	notionTable = domain.NotionTable{
+		DatabaseID: tableID,
+		Rows:       rows,
+	}
+
+	return notionTable, nil
 }
 
-// GetDatabasesList retrieves a list of databases from Notion.
-func (n *Notion) GetDatabasesList() {
+// GetDatabases retrieves a list of databases from Notion.
+func (n *Notion) GetDatabases() ([]string, error) {
+
 	url := CreateURLDatabases(n.NotionClient.BaseURL, "databases")
-	resp, err := n.makeRequest(http.MethodGet, url, nil)
+	response, err := n.makeRequest(http.MethodGet, url, nil)
 	if err != nil {
 		fmt.Println("Error making request:", err)
-		return
+		return nil, err
 	}
-	defer resp.Body.Close()
+	defer response.Body.Close()
+	var resp map[string]interface{}
+	if err := json.NewDecoder(response.Body).Decode(&resp); err != nil {
+		fmt.Println("Error decoding response:", err)
+		// return
+	}
 
-	fmt.Println(resp)
+	var ids []string
+	for _, v := range resp["results"].([]interface{}) {
+		ids = append(ids, v.(map[string]interface{})["id"].(string))
+	}
+
+	return ids, nil
 }
 
-func (n *Notion) UpdateDatabase(pageID string, operationID string, coinPrice float64, profitValue float64) {
+func (n *Notion) UpdateDatabase(pageID string, operationID string, coinPrice float64, profitValue float64) error {
 	url := CreateURLPages(n.NotionClient.BaseURL, pageID)
 
 	payload := n.NotionClient.UpdateTablePayload(coinPrice, profitValue, operationID)
@@ -86,4 +163,5 @@ func (n *Notion) UpdateDatabase(pageID string, operationID string, coinPrice flo
 
 	fmt.Println(resp.Status)
 
+	return nil
 }
