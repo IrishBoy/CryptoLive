@@ -147,7 +147,7 @@ func (n *Notion) GetDatabases() ([]string, error) {
 	return ids, nil
 }
 
-func (n *Notion) UpdateDatabase(pageID string, operationID string, coinPrice float64, profitValue float64) error {
+func (n *Notion) UpdateDatabases(pageID string, operationID string, coinPrice float64, profitValue float64) error {
 	url := CreateURLPages(n.NotionClient.BaseURL, pageID)
 
 	payload := n.NotionClient.UpdateTablePayload(coinPrice, profitValue, operationID)

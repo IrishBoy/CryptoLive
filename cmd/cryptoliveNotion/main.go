@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	notionClient := domain.NewNotionClient("")
+	notionClient := domain.NewNotionClient("secret_YEbH3Dm33GM29Xq7ipyrv3NlRNM1HxBsbckSLcU4oVF")
 	notionInstance := &notion.Notion{
 		NotionClient: *notionClient,
 	}
@@ -24,5 +24,5 @@ func main() {
 	notionTables := notionHandler.New(notionInstance, binanceInstance)
 
 	// Use the instance to update databases
-	notionTables.UpdateDatabase()
+	notionTables.UpdateDatabases()
 }

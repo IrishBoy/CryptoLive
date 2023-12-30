@@ -21,7 +21,7 @@ type NotionTables struct {
 	binanceProvider BinanceAPI
 }
 
-func (n *NotionTables) UpdateDatabase() {
+func (n *NotionTables) UpdateDatabases() {
 	coins := make(map[string]bool)
 	ids, err := n.notionProvider.GetDatabases()
 	if err != nil {
