@@ -64,6 +64,11 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 	var rows []domain.NotionTableRow
 
 	for _, v := range resp["results"].([]interface{}) {
+		id, ok := v.(map[string]interface{})["id"].(string)
+		if !ok {
+			fmt.Println("Error: 'id' not found or not a map")
+			continue
+		}
 		properties, ok := v.(map[string]interface{})["properties"].(map[string]interface{})
 		if !ok {
 			fmt.Println("Error: 'properties' not found or not a map")
@@ -79,24 +84,6 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 		coin, ok := coinSelect.(map[string]interface{})["name"].(string)
 		if !ok {
 			fmt.Println("Error: 'name' not found or not a string")
-			continue
-		}
-
-		idTitle, ok := properties["ID"].(map[string]interface{})["title"]
-		if !ok || idTitle == nil {
-			fmt.Println("Error: 'ID' or 'title' is nil or not found")
-			continue
-		}
-
-		idText, ok := idTitle.([]interface{})[0].(map[string]interface{})["text"]
-		if !ok || idText == nil {
-			fmt.Println("Error: 'text' is nil or not found")
-			continue
-		}
-
-		id, ok := idText.(map[string]interface{})["content"].(string)
-		if !ok {
-			fmt.Println("Error: 'content' not found or not a string")
 			continue
 		}
 
@@ -155,7 +142,7 @@ func (n *Notion) UpdateDatabase(pageID string, operationID string, coinPrice flo
 	if err != nil {
 		fmt.Print(fmt.Errorf("error encoding JSON payload: %v", err))
 	}
-	resp, err := n.makeRequest(http.MethodGet, url, payloadBytes)
+	resp, err := n.makeRequest(http.MethodPatch, url, payloadBytes)
 	if err != nil {
 		fmt.Print(fmt.Errorf("error making request: %v", err))
 	}
