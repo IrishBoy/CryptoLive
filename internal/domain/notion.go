@@ -77,11 +77,34 @@ func (nc *NotionClient) CreateDatabasePayload(pageID string) map[string]interfac
 			{
 				"type": "text",
 				"text": map[string]interface{}{
-					"content": "ID",
+					"content": "Operations",
 					"link":    nil,
 				},
 			},
 		},
-		"properties": map[string]interface{}{},
+		"properties": map[string]interface{}{
+			"Coin bought": map[string]interface{}{
+				"select": map[string]interface{}{
+					"options": []map[string]interface{}{
+						{
+							"name": "BTC",
+						},
+						{
+							"name": "ETH",
+						},
+					},
+				},
+			},
+			"Bought amount": map[string]interface{}{
+				"number": map[string]interface{}{
+					"format": "number_with_commas",
+				},
+			},
+			"Sold amount": map[string]interface{}{
+				"number": map[string]interface{}{
+					"format": "number_with_commas",
+				},
+			},
+		},
 	}
 }
