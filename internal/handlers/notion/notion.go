@@ -10,7 +10,7 @@ import (
 type NotionAPI interface {
 	GetDatabases() ([]string, error)
 	GetDatabase(tableID string) (domain.NotionTable, error)
-	UpdateDatabase(pageID string, operationID string, coinPrice float64, profitValue float64) error
+	UpdateDatabase(pageID string, coinPrice float64, profitValue float64) error
 }
 
 type BinanceAPI interface {
@@ -55,11 +55,13 @@ func (n *NotionTables) UpdateDatabases() {
 				fmt.Println("Error updating gain")
 			}
 			tables[databaseID].Rows[rowID] = updatedRow
-
+			err = n.notionProvider.UpdateDatabase(updatedRow.ID, updatedRow.CurrentCointPrice, updatedRow.PercentageGain)
+			if err != nil {
+				fmt.Println("Error updating database:", databaseID)
+			}
 		}
 
 	}
-	fmt.Print(tables)
 }
 
 func (n *NotionTables) GetCoinsPrices(coins []string) map[string]float64 {

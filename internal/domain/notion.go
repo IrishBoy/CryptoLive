@@ -48,7 +48,7 @@ func (nc *NotionClient) CreateRequestHeaders() map[string]string {
 	}
 }
 
-func (nc *NotionClient) UpdateTablePayload(coinPrice, profitValue float64, operationID string) map[string]interface{} {
+func (nc *NotionClient) UpdateTablePayload(coinPrice, profitValue float64) map[string]interface{} {
 	return map[string]interface{}{
 		"properties": map[string]interface{}{
 			"Current Coin Price": map[string]interface{}{
@@ -58,29 +58,6 @@ func (nc *NotionClient) UpdateTablePayload(coinPrice, profitValue float64, opera
 			"ProfitValue": map[string]interface{}{
 				"type":   "number",
 				"number": profitValue,
-			},
-			"ID": map[string]interface{}{
-				"id":   "title",
-				"type": "title",
-				"title": []map[string]interface{}{
-					{
-						"type": "text",
-						"text": map[string]interface{}{
-							"content": operationID,
-							"link":    nil,
-						},
-						"annotations": map[string]interface{}{
-							"bold":          false,
-							"italic":        false,
-							"strikethrough": false,
-							"underline":     false,
-							"code":          false,
-							"color":         "default",
-						},
-						"plain_text": operationID,
-						"href":       false,
-					},
-				},
 			},
 		},
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	notionClient := domain.NewNotionClient("secret_YEbH3Dm33GM29Xq7ipyrv3NlRNM1HxBsbckSLcU4oVF")
+	notionClient := domain.NewNotionClient("")
 	notionInstance := &notion.Notion{
 		NotionClient: *notionClient,
 	}

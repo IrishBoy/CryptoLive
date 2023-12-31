@@ -134,21 +134,19 @@ func (n *Notion) GetDatabases() ([]string, error) {
 	return ids, nil
 }
 
-func (n *Notion) UpdateDatabase(pageID string, operationID string, coinPrice float64, profitValue float64) error {
+func (n *Notion) UpdateDatabase(pageID string, coinPrice float64, profitValue float64) error {
 	url := CreateURLPages(n.NotionClient.BaseURL, pageID)
 
-	payload := n.NotionClient.UpdateTablePayload(coinPrice, profitValue, operationID)
+	payload := n.NotionClient.UpdateTablePayload(coinPrice, profitValue)
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Print(fmt.Errorf("error encoding JSON payload: %v", err))
+		return err
 	}
 	resp, err := n.makeRequest(http.MethodPatch, url, payloadBytes)
 	if err != nil {
-		fmt.Print(fmt.Errorf("error making request: %v", err))
+		return err
 	}
 	defer resp.Body.Close()
-
-	fmt.Println(resp.Status)
 
 	return nil
 }
