@@ -67,7 +67,7 @@ func (nc *NotionClient) UpdatePagePayload(pageID string) map[string]interface{} 
 	return nil
 }
 
-func (nc *NotionClient) CreateDatabase(pageID string) map[string]interface{} {
+func (nc *NotionClient) CreateDatabasePayload(pageID string) map[string]interface{} {
 	return map[string]interface{}{
 		"parent": map[string]interface{}{
 			"type":    "page_id",
