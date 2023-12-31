@@ -150,6 +150,10 @@ func (n *Notion) UpdateDatabase(pageID string, coinPrice float64, profitValue fl
 	return nil
 }
 
+func (n *Notion) GetPages() ([]string, error) {
+	return []string{}, nil
+}
+
 // We may want to set out own column names, so we need to give users functionality to set it in the parent page
 // So, we need to retrieve those names
 // If page is connected to our extention and there is
