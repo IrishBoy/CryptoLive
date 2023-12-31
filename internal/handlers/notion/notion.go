@@ -28,7 +28,7 @@ func (n *NotionTables) UpdateDatabases() {
 	if err != nil {
 		fmt.Println("Error getting databases")
 	}
-
+	// Rewrtite so it will be done in parallel
 	for _, databaseID := range ids {
 		table, err := n.notionProvider.GetDatabase(databaseID)
 		if err != nil {
@@ -45,6 +45,7 @@ func (n *NotionTables) UpdateDatabases() {
 	coinsPrices := n.GetCoinsPrices(uniqueCoins)
 
 	for databaseID, database := range tables {
+		// Rewrtite so it will be done in parallel
 		for rowID, row := range database.Rows {
 			updatedRow, err := UpdateCoinPrice(row, coinsPrices)
 			if err != nil {
@@ -66,6 +67,7 @@ func (n *NotionTables) UpdateDatabases() {
 
 func (n *NotionTables) GetCoinsPrices(coins []string) map[string]float64 {
 	coinsPrices := make(map[string]float64)
+	// Rewrtite so it will be done in parallel
 	for _, coin := range coins {
 		price, err := n.binanceProvider.GetCoinPrice(coin)
 		if err != nil {

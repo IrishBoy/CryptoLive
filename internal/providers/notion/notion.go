@@ -62,7 +62,7 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 
 	var notionTable domain.NotionTable // Declare notionTable outside the loop
 	var rows []domain.NotionTableRow
-
+	// Rewrtite so it will be done in parallel
 	for _, v := range resp["results"].([]interface{}) {
 		id, ok := v.(map[string]interface{})["id"].(string)
 		if !ok {
