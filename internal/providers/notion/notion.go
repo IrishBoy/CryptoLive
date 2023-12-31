@@ -166,3 +166,7 @@ func (n *Notion) GetColumns(pageID string) ([]string, error) {
 func (n *Notion) CreatePage(pageID string) (err error) {
 	return nil
 }
+
+func (n *Notion) CreateDatabase(pageID string) (err error) {
+	return nil
+}
