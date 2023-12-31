@@ -62,3 +62,26 @@ func (nc *NotionClient) UpdateTablePayload(coinPrice, profitValue float64) map[s
 		},
 	}
 }
+
+func (nc *NotionClient) UpdatePagePayload(pageID string) map[string]interface{} {
+	return nil
+}
+
+func (nc *NotionClient) CreateDatabase(pageID string) map[string]interface{} {
+	return map[string]interface{}{
+		"parent": map[string]interface{}{
+			"type":    "page_id",
+			"page_id": pageID,
+		},
+		"title": []map[string]interface{}{
+			{
+				"type": "text",
+				"text": map[string]interface{}{
+					"content": "ID",
+					"link":    nil,
+				},
+			},
+		},
+		"properties": map[string]interface{}{},
+	}
+}

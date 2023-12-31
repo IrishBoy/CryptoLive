@@ -16,11 +16,11 @@ type Notion struct {
 	NotionClient domain.NotionClient
 }
 
-func CreateURLDatabase(baseURL string, group string, databaseID string) string {
+func CreateURLDatabase(baseURL string, databaseID string) string {
 	return fmt.Sprintf("%s/databases/%s/query", baseURL, databaseID)
 }
 
-func CreateURLDatabases(baseURL string, group string) string {
+func CreateURLDatabases(baseURL string) string {
 	return fmt.Sprintf("%s/databases", baseURL)
 }
 
@@ -46,7 +46,7 @@ func (n *Notion) makeRequest(method string, url string, payloadBytes []byte) (*h
 
 // GetDatabase retrieves data from a Notion database using the specified tableID.
 func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
-	url := CreateURLDatabase(n.NotionClient.BaseURL, "databases", tableID)
+	url := CreateURLDatabase(n.NotionClient.BaseURL, tableID)
 
 	response, err := n.makeRequest(http.MethodPost, url, nil)
 	if err != nil {
@@ -112,7 +112,7 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 // GetDatabases retrieves a list of databases from Notion.
 func (n *Notion) GetDatabases() ([]string, error) {
 
-	url := CreateURLDatabases(n.NotionClient.BaseURL, "databases")
+	url := CreateURLDatabases(n.NotionClient.BaseURL)
 	response, err := n.makeRequest(http.MethodGet, url, nil)
 	if err != nil {
 		fmt.Println("Error making request:", err)
@@ -163,7 +163,7 @@ func (n *Notion) GetColumns(pageID string) ([]string, error) {
 // If a user gives us an access to some page we can
 // Create a pattern for the page so he can cofigure column names
 // Create databse as a child page -> So a user will not need to do this
-func (n *Notion) CreatePage(pageID string) (err error) {
+func (n *Notion) UpdatePage(pageID string) (err error) {
 	return nil
 }
 
