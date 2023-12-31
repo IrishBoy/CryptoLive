@@ -149,3 +149,20 @@ func (n *Notion) UpdateDatabase(pageID string, coinPrice float64, profitValue fl
 
 	return nil
 }
+
+// We may want to set out own column names, so we need to give users functionality to set it in the parent page
+// So, we need to retrieve those names
+// If page is connected to our extention and there is
+// 1) Some pattern that we will configure
+// 2) Database as a child page
+// -> We need to get this parameters
+func (n *Notion) GetColumns(pageID string) ([]string, error) {
+	return []string{}, nil
+}
+
+// If a user gives us an access to some page we can
+// Create a pattern for the page so he can cofigure column names
+// Create databse as a child page -> So a user will not need to do this
+func (n *Notion) CreatePage(pageID string) (err error) {
+	return nil
+}
