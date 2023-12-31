@@ -90,7 +90,6 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 		row := domain.NotionTableRow{
 			ID:                id,
 			Coin:              coin,
-			OldCoinPrice:      properties["Coin Price"].(map[string]interface{})["formula"].(map[string]interface{})["number"].(float64),
 			CurrentCointPrice: 0,
 			CoinAmount:        properties["Bought Amount"].(map[string]interface{})["number"].(float64),
 			Gain:              0,
