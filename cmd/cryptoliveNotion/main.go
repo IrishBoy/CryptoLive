@@ -27,4 +27,5 @@ func main() {
 
 	// Use the instance to update databases
 	notionTables.UpdateDatabases()
+	// notionTables.GetPages()
 }

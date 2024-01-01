@@ -11,6 +11,7 @@ type NotionAPI interface {
 	GetDatabases() ([]string, error)
 	GetDatabase(tableID string) (domain.NotionTable, error)
 	UpdateDatabase(pageID string, coinPrice float64, profitValue float64) error
+	GetPages() ([]string, error)
 }
 
 type BinanceAPI interface {
@@ -46,6 +47,7 @@ func (n *NotionTables) UpdateDatabases() {
 
 	for databaseID, database := range tables {
 		// Rewrtite so it will be done in parallel
+
 		for rowID, row := range database.Rows {
 			updatedRow, err := UpdateCoinPrice(row, coinsPrices)
 			if err != nil {
@@ -63,6 +65,10 @@ func (n *NotionTables) UpdateDatabases() {
 		}
 
 	}
+}
+
+func (n *NotionTables) GetPages() {
+	fmt.Println(n.notionProvider.GetPages())
 }
 
 func (n *NotionTables) GetCoinsPrices(coins []string) map[string]float64 {

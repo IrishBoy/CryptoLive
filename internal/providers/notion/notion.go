@@ -16,6 +16,9 @@ type Notion struct {
 	NotionClient domain.NotionClient
 }
 
+func CreateURLSearch(baseURL string) string {
+	return fmt.Sprintf("%s/search", baseURL)
+}
 func CreateURLDatabase(baseURL string, databaseID string) string {
 	return fmt.Sprintf("%s/databases/%s/query", baseURL, databaseID)
 }
@@ -30,7 +33,7 @@ func CreateURLPages(baseURL string, pageID string) string {
 
 // makeRequest is a common function for making HTTP requests.
 // SHoul be moved to common package
-func (n *Notion) makeRequest(method string, url string, payloadBytes []byte) (*http.Response, error) {
+func (n *Notion) makeRequest(method string, url string, payloadBytes []byte, headersType string) (*http.Response, error) {
 	client := common.CreateHTTPClient()
 
 	req, err := common.CreateRequest(method, url, payloadBytes)
@@ -38,7 +41,7 @@ func (n *Notion) makeRequest(method string, url string, payloadBytes []byte) (*h
 		return nil, err
 	}
 
-	headers := n.NotionClient.CreateRequestHeaders()
+	headers := n.NotionClient.CreateRequestHeaders("old")
 	req = common.AddHeaders(headers, req)
 
 	return client.Do(req)
@@ -48,7 +51,7 @@ func (n *Notion) makeRequest(method string, url string, payloadBytes []byte) (*h
 func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 	url := CreateURLDatabase(n.NotionClient.BaseURL, tableID)
 
-	response, err := n.makeRequest(http.MethodPost, url, nil)
+	response, err := n.makeRequest(http.MethodPost, url, nil, "new")
 	if err != nil {
 		fmt.Println("Error making request:", err)
 		return domain.NotionTable{}, err
@@ -113,7 +116,8 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 func (n *Notion) GetDatabases() ([]string, error) {
 
 	url := CreateURLDatabases(n.NotionClient.BaseURL)
-	response, err := n.makeRequest(http.MethodGet, url, nil)
+	response, err := n.makeRequest(http.MethodGet, url, nil, "old")
+
 	if err != nil {
 		fmt.Println("Error making request:", err)
 		return nil, err
@@ -122,7 +126,6 @@ func (n *Notion) GetDatabases() ([]string, error) {
 	var resp map[string]interface{}
 	if err := json.NewDecoder(response.Body).Decode(&resp); err != nil {
 		fmt.Println("Error decoding response:", err)
-		// return
 	}
 
 	var ids []string
@@ -141,7 +144,7 @@ func (n *Notion) UpdateDatabase(pageID string, coinPrice float64, profitValue fl
 	if err != nil {
 		return err
 	}
-	resp, err := n.makeRequest(http.MethodPatch, url, payloadBytes)
+	resp, err := n.makeRequest(http.MethodPatch, url, payloadBytes, "new")
 	if err != nil {
 		return err
 	}
@@ -151,6 +154,13 @@ func (n *Notion) UpdateDatabase(pageID string, coinPrice float64, profitValue fl
 }
 
 func (n *Notion) GetPages() ([]string, error) {
+	url := CreateURLSearch(n.NotionClient.BaseURL)
+	resp, err := n.makeRequest(http.MethodGet, url, nil, "old")
+	if err != nil {
+		return []string{}, err
+	}
+	fmt.Println(resp)
+
 	return []string{}, nil
 }
 

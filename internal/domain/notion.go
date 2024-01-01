@@ -39,13 +39,23 @@ func NewNotionClient(apiKey string) *NotionClient {
 	}
 }
 
-func (nc *NotionClient) CreateRequestHeaders() map[string]string {
+func (nc *NotionClient) CreateRequestHeaders(headersType string) map[string]string {
+
+	var version string
+	switch headersType {
+	case "old":
+		version = "2021-05-13"
+	default:
+		version = "2022-06-28"
+	}
+
 	return map[string]string{
-		"Notion-Version": "2021-05-13",
+		"Notion-Version": version,
 		"Authorization":  "Bearer " + nc.APIKey,
 		"Content-Type":   "application/json",
 		"Accept":         "application/json",
 	}
+
 }
 
 func (nc *NotionClient) UpdateTablePayload(coinPrice, profitValue float64) map[string]interface{} {
