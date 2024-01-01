@@ -67,8 +67,18 @@ func (n *NotionTables) UpdateDatabases() {
 	}
 }
 
-func (n *NotionTables) GetPages() {
+func (n *NotionTables) CreateSpaces() {
+	// Get pages without child databases
+	// Create blocks with parameters
+	// Create databases
 	fmt.Println(n.notionProvider.GetPages())
+}
+
+// Return only pages that
+// 1) Are not pages of a database already  -> Check parent type
+// 2) don't have databse as a child -> ?????
+func (n *NotionTables) FilterParentPages() {
+
 }
 
 func (n *NotionTables) GetCoinsPrices(coins []string) map[string]float64 {
