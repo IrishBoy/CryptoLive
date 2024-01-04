@@ -1,35 +1,19 @@
 package domain
 
-import (
-	"time"
-)
+type GetPagesResponse struct {
+	Object         string `json:"object"`
+	Results        []any  `json:"results"`
+	NextCursor     any    `json:"next_cursor"`
+	HasMore        bool   `json:"has_more"`
+	Type           string `json:"type"`
+	PageOrDatabase struct {
+	} `json:"page_or_database"`
+	RequestID string `json:"request_id"`
+}
 
 type NotionClient struct {
 	BaseURL string
 	APIKey  string
-}
-type GetTablesResponse struct {
-	Object     string `json:"object"`
-	Results    []any  `json:"results"`
-	NextCursor any    `json:"next_cursor"`
-	HasMore    bool   `json:"has_more"`
-	RequestID  string `json:"request_id"`
-}
-type GetTableRequest struct {
-}
-
-type GetTableResponse struct {
-	Object         string    `json:"object"`
-	ID             string    `json:"id"`
-	CreatedTime    time.Time `json:"created_time"`
-	LastEditedTime time.Time `json:"last_edited_time"`
-	Title          []any     `json:"title"`
-	Description    []any     `json:"description"`
-	Properties     struct {
-	} `json:"properties"`
-	Archived  bool `json:"archived"`
-	IsInline  bool `json:"is_inline"`
-	PublicURL any  `json:"public_url"`
 }
 
 func NewNotionClient(apiKey string) *NotionClient {
