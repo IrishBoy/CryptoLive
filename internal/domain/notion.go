@@ -1,14 +1,43 @@
 package domain
 
-type GetPagesResponse struct {
-	Object         string `json:"object"`
-	Results        []any  `json:"results"`
-	NextCursor     any    `json:"next_cursor"`
-	HasMore        bool   `json:"has_more"`
-	Type           string `json:"type"`
-	PageOrDatabase struct {
-	} `json:"page_or_database"`
-	RequestID string `json:"request_id"`
+import "time"
+
+type SearchResponse struct {
+	Object         string             `json:"object"`
+	Results        []SearchObjectType `json:"results"`
+	NextCursor     any                `json:"next_cursor"`
+	HasMore        bool               `json:"has_more"`
+	Type           string             `json:"type"`
+	PageOrDatabase any                `json:"page_or_database"`
+	RequestID      string             `json:"request_id"`
+}
+
+type SearchObjectType struct {
+	Object         string    `json:"object"`
+	ID             string    `json:"id"`
+	CreatedTime    time.Time `json:"created_time"`
+	LastEditedTime time.Time `json:"last_edited_time"`
+	CreatedBy      struct {
+		Object string `json:"object"`
+		ID     string `json:"id"`
+	} `json:"created_by"`
+	LastEditedBy struct {
+		Object string `json:"object"`
+		ID     string `json:"id"`
+	} `json:"last_edited_by"`
+	Cover  any `json:"cover"`
+	Icon   any `json:"icon"`
+	Parent struct {
+		Type        string `json:"type"`
+		DatabaseID  string `json:"database_id,omitempty"`
+		PageID      string `json:"page_id,omitempty"`
+		IsWorkspace bool   `json:"workspace,omitempty"`
+	} `json:"parent"`
+	Archived   bool `json:"archived"`
+	Properties struct {
+	} `json:"properties"`
+	URL       string `json:"url"`
+	PublicURL any    `json:"public_url"`
 }
 
 type NotionClient struct {

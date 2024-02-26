@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/IrishBoy/CryptoLive/internal/domain"
 	"github.com/IrishBoy/CryptoLive/internal/providers/common"
@@ -31,6 +32,10 @@ func CreateURLPages(baseURL string, pageID string) string {
 	return fmt.Sprintf("%s/pages/%s", baseURL, pageID)
 }
 
+func CreateURLAppendBlock(baseURL string, pageID string) string {
+	return fmt.Sprintf("%s/blocks/%s/children", baseURL, pageID)
+}
+
 // makeRequest is a common function for making HTTP requests.
 // SHoul be moved to common package
 func (n *Notion) makeRequest(method string, url string, payloadBytes []byte, headersType string) (*http.Response, error) {
@@ -41,9 +46,8 @@ func (n *Notion) makeRequest(method string, url string, payloadBytes []byte, hea
 		return nil, err
 	}
 
-	headers := n.NotionClient.CreateRequestHeaders("old")
+	headers := n.NotionClient.CreateRequestHeaders(headersType)
 	req = common.AddHeaders(headers, req)
-
 	return client.Do(req)
 }
 
@@ -123,6 +127,7 @@ func (n *Notion) GetDatabases() ([]string, error) {
 		return nil, err
 	}
 	defer response.Body.Close()
+
 	var resp map[string]interface{}
 	if err := json.NewDecoder(response.Body).Decode(&resp); err != nil {
 		fmt.Println("Error decoding response:", err)
@@ -153,15 +158,21 @@ func (n *Notion) UpdateDatabase(pageID string, coinPrice float64, profitValue fl
 	return nil
 }
 
-func (n *Notion) GetPages() ([]string, error) {
+func (n *Notion) Search() (domain.SearchResponse, error) {
 	url := CreateURLSearch(n.NotionClient.BaseURL)
-	resp, err := n.makeRequest(http.MethodGet, url, nil, "old")
-	if err != nil {
-		return []string{}, err
-	}
-	fmt.Println(resp)
+	response, err := n.makeRequest(http.MethodPost, url, nil, "new")
 
-	return []string{}, nil
+	if err != nil {
+		return domain.SearchResponse{}, err
+	}
+	defer response.Body.Close()
+	var result domain.SearchResponse
+	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
+		fmt.Println("Error decoding response:", err)
+		return domain.SearchResponse{}, err
+	}
+
+	return result, nil
 }
 
 // We may want to set out own column names, so we need to give users functionality to set it in the parent page
@@ -178,6 +189,21 @@ func (n *Notion) GetColumns(pageID string) ([]string, error) {
 // Create a pattern for the page so he can cofigure column names
 // Create databse as a child page -> So a user will not need to do this
 func (n *Notion) UpdatePage(pageID string) (err error) {
+	url := CreateURLAppendBlock(n.NotionClient.BaseURL, pageID)
+	pageBlock, err := os.ReadFile("internal/domain/page_template.json")
+
+	if err != nil {
+		fmt.Println("Error reading page block file:", err)
+		return err
+	}
+
+	_, err = n.makeRequest(http.MethodPatch, url, pageBlock, "new")
+
+	if err != nil {
+		fmt.Println("Error making request to append blocks to page:", err)
+
+	}
+
 	return nil
 }
 

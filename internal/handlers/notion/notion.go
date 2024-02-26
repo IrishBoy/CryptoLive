@@ -11,7 +11,8 @@ type NotionAPI interface {
 	GetDatabases() ([]string, error)
 	GetDatabase(tableID string) (domain.NotionTable, error)
 	UpdateDatabase(pageID string, coinPrice float64, profitValue float64) error
-	GetPages() ([]string, error)
+	Search() (domain.SearchResponse, error)
+	UpdatePage(pageID string) (err error)
 }
 
 type BinanceAPI interface {
@@ -71,13 +72,42 @@ func (n *NotionTables) CreateSpaces() {
 	// Get pages without child databases
 	// Create blocks with parameters
 	// Create databases
-	fmt.Println(n.notionProvider.GetPages())
+	searchNotion, _ := n.notionProvider.Search()
+	parentPages := n.FilterParentPages(searchNotion)
+	for _, pageId := range parentPages {
+		err := n.notionProvider.UpdatePage(pageId)
+		if err != nil {
+			fmt.Println("Error updating page:", err)
+		}
+	}
+	// fmt.Println(parentPages)
+
 }
 
 // Return only pages that
 // 1) Are not pages of a database already  -> Check parent type
 // 2) don't have databse as a child -> ?????
-func (n *NotionTables) FilterParentPages() {
+func (n *NotionTables) FilterParentPages(allPages domain.SearchResponse) []string {
+	parentPages := []string{}
+	databases_parents := []string{}
+	for _, page := range allPages.Results {
+		// fmt.Printf("%+v\n", page.Parent)
+		// fmt.Printf("%#v\n", page)
+		if page.Parent.Type == "page_id" && page.Object != "database" {
+			//add only pages that are not ones of a database already
+			parentPages = append(parentPages, page.ID)
+		}
+		if page.Parent.Type == "workspace" {
+			parentPages = append(parentPages, page.ID)
+		}
+		if page.Object == "database" {
+			databases_parents = append(databases_parents, page.Parent.PageID)
+		}
+		// TODO: Check all the tree
+	}
+	new_pages := common.FilterArray(parentPages, databases_parents)
+
+	return new_pages
 
 }
 

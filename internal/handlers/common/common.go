@@ -31,3 +31,24 @@ func GoDotEnvVariable(key string) string {
 
 	return os.Getenv(key)
 }
+
+func FilterArray(a, b []string) []string {
+	// Create a map to store elements of array b
+	bMap := make(map[string]bool)
+	for _, val := range b {
+		bMap[val] = true
+	}
+
+	// Initialize an empty result slice
+	result := []string{}
+
+	// Iterate through array a
+	for _, val := range a {
+		// If the element is not present in b, add it to the result
+		if !bMap[val] {
+			result = append(result, val)
+		}
+	}
+
+	return result
+}

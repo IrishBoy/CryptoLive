@@ -1,0 +1,284 @@
+
+{"children": [
+    {
+        "object": "block",
+        "type": "toggle",
+        "toggle": {
+            "rich_text": [
+                {
+                    "type": "text",
+                    "text": {
+                        "content": "Bought Coin Column Name",
+                        "link": null
+                    },
+                    "annotations": {
+                        "bold": false,
+                        "italic": false,
+                        "strikethrough": false,
+                        "underline": false,
+                        "code": false,
+                        "color": "default"
+                    },
+                    "plain_text": "Bought Coin Column Name",
+                    "href": null
+                }
+            ],
+            "color": "default",
+            "children": [{
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": "Sold Coin",
+                                "link": null
+                            },
+                            "annotations": {
+                                "bold": false,
+                                "italic": false,
+                                "strikethrough": false,
+                                "underline": false,
+                                "code": false,
+                                "color": "default"
+                            },
+                            "plain_text": "Sold Coin",
+                            "href": null
+                        }
+                    ],
+                    "color": "default"
+                }
+            }]
+        }
+    },
+    {
+        "object": "block",
+        "type": "toggle",
+        "toggle": {
+            "rich_text": [
+                {
+                    "type": "text",
+                    "text": {
+                        "content": "Sold Coin Column Name",
+                        "link": null
+                    },
+                    "annotations": {
+                        "bold": false,
+                        "italic": false,
+                        "strikethrough": false,
+                        "underline": false,
+                        "code": false,
+                        "color": "default"
+                    },
+                    "plain_text": "Sold Coin Column Name",
+                    "href": null
+                }
+            ],
+            "color": "default",
+            "children": [{
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": "Coin bought",
+                                "link": null
+                            },
+                            "annotations": {
+                                "bold": false,
+                                "italic": false,
+                                "strikethrough": false,
+                                "underline": false,
+                                "code": false,
+                                "color": "default"
+                            },
+                            "plain_text": "Coin bought",
+                            "href": null
+                        }
+                    ],
+                    "color": "default"
+                }
+            }]
+        }
+    },
+    {
+        "object": "block",
+        "type": "toggle",
+        "toggle": {
+            "rich_text": [
+                {
+                    "type": "text",
+                    "text": {
+                        "content": "Bought Coin Amount Column Name",
+                        "link": null
+                    },
+                    "annotations": {
+                        "bold": false,
+                        "italic": false,
+                        "strikethrough": false,
+                        "underline": false,
+                        "code": false,
+                        "color": "default"
+                    },
+                    "plain_text": "Bought Coin Amount Column Name",
+                    "href": null
+                }
+            ],
+            "color": "default",
+            "children": [{
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": "Bought Amount",
+                                "link": null
+                            },
+                            "annotations": {
+                                "bold": false,
+                                "italic": false,
+                                "strikethrough": false,
+                                "underline": false,
+                                "code": false,
+                                "color": "default"
+                            },
+                            "plain_text": "Bought Amount",
+                            "href": null
+                        }
+                    ],
+                    "color": "default"
+                }
+            }]
+        }
+    },
+    {
+        "object": "block",
+        "type": "toggle",
+        "toggle": {
+            "rich_text": [
+                {
+                    "type": "text",
+                    "text": {
+                        "content": "Sold Coin Amount Column Name",
+                        "link": null
+                    },
+                    "annotations": {
+                        "bold": false,
+                        "italic": false,
+                        "strikethrough": false,
+                        "underline": false,
+                        "code": false,
+                        "color": "default"
+                    },
+                    "plain_text": "Sold Coin Amount Column Name",
+                    "href": null
+                }
+            ],
+            "color": "default",
+            "children": [{
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": "Sold Amount",
+                                "link": null
+                            },
+                            "annotations": {
+                                "bold": false,
+                                "italic": false,
+                                "strikethrough": false,
+                                "underline": false,
+                                "code": false,
+                                "color": "default"
+                            },
+                            "plain_text": "Sold Amount",
+                            "href": null
+                        }
+                    ],
+                    "color": "default"
+                }
+            }]
+        }
+    },
+    {
+        "object": "block",
+        "type": "toggle",
+        "toggle": {
+            "rich_text": [
+                {
+                    "type": "text",
+                    "text": {
+                        "content": "Operation ID Column Name",
+                        "link": null
+                    },
+                    "annotations": {
+                        "bold": false,
+                        "italic": false,
+                        "strikethrough": false,
+                        "underline": false,
+                        "code": false,
+                        "color": "default"
+                    },
+                    "plain_text": "Operation ID Column Name",
+                    "href": null
+                }
+            ],
+            "color": "default",
+            "children": [{
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [
+                        {
+                            "type": "text",
+                            "text": {
+                                "content": "id",
+                                "link": null
+                            },
+                            "annotations": {
+                                "bold": false,
+                                "italic": false,
+                                "strikethrough": false,
+                                "underline": false,
+                                "code": false,
+                                "color": "default"
+                            },
+                            "plain_text": "id",
+                            "href": null
+                        }
+                    ],
+                    "color": "default"
+                }
+            }]
+        }
+    },
+    {
+        "object": "block",
+        "paragraph": {
+            "rich_text": [
+                {
+                    "type": "text",
+                    "text": {
+                        "content": "Page ID: ",
+                        "link": null
+                    },
+                    "annotations": {
+                        "bold": false,
+                        "italic": false,
+                        "strikethrough": false,
+                        "underline": false,
+                        "code": false,
+                        "color": "default"
+                    },
+                    "plain_text": "Page ID: ",
+                    "href": null
+                }
+            ],
+            "color": "default"
+        }
+    }
+]
+}

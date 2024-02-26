@@ -26,6 +26,6 @@ func main() {
 	notionTables := notionHandler.New(notionInstance, binanceInstance)
 
 	// Use the instance to update databases
-	notionTables.UpdateDatabases()
-	// notionTables.GetPages()
+	// notionTables.UpdateDatabases()
+	notionTables.CreateSpaces()
 }
