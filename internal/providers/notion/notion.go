@@ -94,6 +94,18 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 			continue
 		}
 
+		soldCoinSelect, ok := properties["Sold Coin"].(map[string]interface{})["select"]
+		if !ok || soldCoinSelect == nil {
+			fmt.Println("Error: 'Coin bought' or 'select' is nil or not found")
+			continue
+		}
+
+		coinSold, ok := soldCoinSelect.(map[string]interface{})["name"].(string)
+		if !ok {
+			fmt.Println("Error: 'name' not found or not a string")
+			continue
+		}
+
 		row := domain.NotionTableRow{
 			ID:                id,
 			Coin:              coin,
@@ -101,7 +113,7 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 			CoinAmount:        properties["Bought Amount"].(map[string]interface{})["number"].(float64),
 			Gain:              0,
 			PercentageGain:    0,
-			SoldCoin:          "USDT",
+			SoldCoin:          coinSold,
 			SoldAmount:        properties["Sold Amount"].(map[string]interface{})["number"].(float64),
 		}
 

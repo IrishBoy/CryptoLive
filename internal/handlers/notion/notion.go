@@ -18,9 +18,14 @@ type NotionAPI interface {
 type BinanceAPI interface {
 	GetCoinPrice(coin string) (float64, error)
 }
+type CoinbaseAPI interface {
+	GetCoinPrice(coin string) (float64, error)
+}
+
 type NotionTables struct {
-	notionProvider  NotionAPI
-	binanceProvider BinanceAPI
+	notionProvider   NotionAPI
+	binanceProvider  BinanceAPI
+	coinbaseProvider CoinbaseAPI
 }
 
 func (n *NotionTables) UpdateDatabases() {
@@ -38,7 +43,12 @@ func (n *NotionTables) UpdateDatabases() {
 		}
 		tables = append(tables, table)
 		for _, row := range table.Rows {
-			common.AddString(coins, row.Coin)
+			if row.Coin == "USDT" {
+				common.AddString(coins, row.SoldCoin)
+			} else {
+				common.AddString(coins, row.Coin)
+			}
+
 		}
 
 	}
@@ -117,8 +127,13 @@ func (n *NotionTables) GetCoinsPrices(coins []string) map[string]float64 {
 	for _, coin := range coins {
 		price, err := n.binanceProvider.GetCoinPrice(coin)
 		if err != nil {
-			fmt.Println("Error getting coin price")
+			fmt.Println("Error getting coin price from binance")
+			price, err = n.coinbaseProvider.GetCoinPrice(coin)
+			if err != nil {
+				fmt.Println("Error getting coin price from coinbase")
+			}
 		}
+
 		coinsPrices[coin] = price
 	}
 	return coinsPrices
@@ -126,7 +141,12 @@ func (n *NotionTables) GetCoinsPrices(coins []string) map[string]float64 {
 
 // write verification on no coin price
 func UpdateCoinPrice(row domain.NotionTableRow, coins map[string]float64) (domain.NotionTableRow, error) {
-	row.CurrentCointPrice = float64(coins[row.Coin])
+	if row.Coin == "USDT" {
+		row.CurrentCointPrice = 1 / float64(coins[row.SoldCoin])
+	} else {
+		row.CurrentCointPrice = float64(coins[row.Coin])
+	}
+
 	return row, nil
 }
 
@@ -142,6 +162,6 @@ func CoinGain(row domain.NotionTableRow) (domain.NotionTableRow, error) {
 	return row, nil
 }
 
-func New(notionProvider NotionAPI, binanceProvider BinanceAPI) *NotionTables {
-	return &NotionTables{notionProvider: notionProvider, binanceProvider: binanceProvider}
+func New(notionProvider NotionAPI, binanceProvider BinanceAPI, coinbaseProvider CoinbaseAPI) *NotionTables {
+	return &NotionTables{notionProvider: notionProvider, binanceProvider: binanceProvider, coinbaseProvider: coinbaseProvider}
 }
