@@ -10,9 +10,10 @@ import (
 type NotionAPI interface {
 	GetDatabases() ([]string, error)
 	GetDatabase(tableID string) (domain.NotionTable, error)
-	UpdateDatabase(pageID string, coinPrice float64, profitValue float64) error
+	UpdateDatabase(pageID string, coinPrice float64, profit float64, profitValue float64) error
 	Search() (domain.SearchResponse, error)
 	UpdatePage(pageID string) (err error)
+	CreateDatabase(pageID string) (err error)
 }
 
 type BinanceAPI interface {
@@ -39,7 +40,7 @@ func (n *NotionTables) UpdateDatabases() {
 	for _, databaseID := range ids {
 		table, err := n.notionProvider.GetDatabase(databaseID)
 		if err != nil {
-			fmt.Println("Error getting database")
+			fmt.Println("Error getting database:")
 		}
 		tables = append(tables, table)
 		for _, row := range table.Rows {
@@ -64,12 +65,16 @@ func (n *NotionTables) UpdateDatabases() {
 			if err != nil {
 				fmt.Println("Error updating coin price")
 			}
-			updatedRow, err = CoinPercentageGain(updatedRow)
+			updatedRow, err = CoinGain(updatedRow)
 			if err != nil {
 				fmt.Println("Error updating gain")
 			}
+			updatedRow, err = CoinPercentageGain(updatedRow)
+			if err != nil {
+				fmt.Println("Error updating percetage gain")
+			}
 			tables[databaseID].Rows[rowID] = updatedRow
-			err = n.notionProvider.UpdateDatabase(updatedRow.ID, updatedRow.CurrentCointPrice, updatedRow.PercentageGain)
+			err = n.notionProvider.UpdateDatabase(updatedRow.ID, updatedRow.CurrentCointPrice, updatedRow.Gain, updatedRow.PercentageGain)
 			if err != nil {
 				fmt.Println("Error updating database:", databaseID)
 			}
@@ -89,8 +94,11 @@ func (n *NotionTables) CreateSpaces() {
 		if err != nil {
 			fmt.Println("Error updating page:", err)
 		}
+		err = n.notionProvider.CreateDatabase(pageId)
+		if err != nil {
+			fmt.Println("Error creaing database:", err)
+		}
 	}
-	// fmt.Println(parentPages)
 
 }
 
@@ -127,10 +135,10 @@ func (n *NotionTables) GetCoinsPrices(coins []string) map[string]float64 {
 	for _, coin := range coins {
 		price, err := n.binanceProvider.GetCoinPrice(coin)
 		if err != nil {
-			fmt.Println("Error getting coin price from binance")
+			fmt.Printf("Error getting coin price from binance: %s\n", coin)
 			price, err = n.coinbaseProvider.GetCoinPrice(coin)
 			if err != nil {
-				fmt.Println("Error getting coin price from coinbase")
+				fmt.Printf("Error getting coin price from coinbase: %s\n", coin)
 			}
 		}
 
@@ -152,13 +160,21 @@ func UpdateCoinPrice(row domain.NotionTableRow, coins map[string]float64) (domai
 
 // write verification on row.SoldAmoint == 0
 func CoinPercentageGain(row domain.NotionTableRow) (domain.NotionTableRow, error) {
-	row.PercentageGain = float64((row.CurrentCointPrice*row.CoinAmount - row.SoldAmount) / row.SoldAmount)
+	if row.Coin == "USDT" {
+		row.PercentageGain = float64(row.Gain / row.BoughtAmount)
+	} else {
+		row.PercentageGain = float64(row.Gain / row.SoldAmount)
+	}
 	return row, nil
 
 }
 
 func CoinGain(row domain.NotionTableRow) (domain.NotionTableRow, error) {
-	row.Gain = float64(row.CurrentCointPrice*row.CoinAmount - row.SoldAmount)
+	if row.Coin == "USDT" {
+		row.Gain = -float64((1/row.CurrentCointPrice)*row.SoldAmount - row.BoughtAmount)
+	} else {
+		row.Gain = float64(row.CurrentCointPrice*row.BoughtAmount - row.SoldAmount)
+	}
 	return row, nil
 }
 

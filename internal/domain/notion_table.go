@@ -4,7 +4,7 @@ type NotionTableRow struct {
 	ID                string
 	Coin              string
 	CurrentCointPrice float64
-	CoinAmount        float64
+	BoughtAmount      float64
 	Gain              float64
 	PercentageGain    float64
 	SoldCoin          string

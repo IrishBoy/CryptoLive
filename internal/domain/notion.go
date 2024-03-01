@@ -71,12 +71,16 @@ func (nc *NotionClient) CreateRequestHeaders(headersType string) map[string]stri
 
 }
 
-func (nc *NotionClient) UpdateTablePayload(coinPrice, profitValue float64) map[string]interface{} {
+func (nc *NotionClient) UpdateTablePayload(coinPrice, profit float64, profitValue float64) map[string]interface{} {
 	return map[string]interface{}{
 		"properties": map[string]interface{}{
 			"Current Coin Price": map[string]interface{}{
 				"type":   "number",
 				"number": coinPrice,
+			},
+			"Profit": map[string]interface{}{
+				"type":   "number",
+				"number": profit,
 			},
 			"ProfitValue": map[string]interface{}{
 				"type":   "number",
@@ -103,30 +107,54 @@ func (nc *NotionClient) CreateDatabasePayload(pageID string) map[string]interfac
 					"content": "Operations",
 					"link":    nil,
 				},
+				"annotations": map[string]interface{}{
+					"bold":          false,
+					"italic":        false,
+					"strikethrough": false,
+					"underline":     false,
+					"code":          false,
+					"color":         "default",
+				},
+				"plain_text": "Operations",
+				"href":       nil,
 			},
 		},
 		"properties": map[string]interface{}{
 			"Coin bought": map[string]interface{}{
-				"select": map[string]interface{}{
-					"options": []map[string]interface{}{
-						{
-							"name": "BTC",
-						},
-						{
-							"name": "ETH",
-						},
-					},
-				},
+				"name":   "Coin bought",
+				"type":   "select",
+				"select": map[string]interface{}{"options": []interface{}{}},
 			},
-			"Bought amount": map[string]interface{}{
-				"number": map[string]interface{}{
-					"format": "number_with_commas",
-				},
+			"Bought Amount": map[string]interface{}{
+				"name":   "Bought Amount",
+				"type":   "number",
+				"number": map[string]interface{}{"format": "number_with_commas"},
 			},
-			"Sold amount": map[string]interface{}{
-				"number": map[string]interface{}{
-					"format": "number_with_commas",
-				},
+			"Coin Sold": map[string]interface{}{
+				"name":   "Coin Sold",
+				"type":   "select",
+				"select": map[string]interface{}{"options": []interface{}{}},
+			},
+			"Sold Amount": map[string]interface{}{
+				"name":   "Sold Amount",
+				"type":   "number",
+				"number": map[string]interface{}{"format": "number_with_commas"},
+			},
+			"Profit": map[string]interface{}{
+				"name":   "Profit",
+				"type":   "number",
+				"number": map[string]interface{}{"format": "number_with_commas"},
+			},
+			"Profit Percentage": map[string]interface{}{
+				"name":   "Profit Percentage",
+				"type":   "number",
+				"number": map[string]interface{}{"format": "percent"},
+			},
+			"Operation Type": map[string]interface{}{
+				"id":    "title",
+				"name":  "Operation Type",
+				"type":  "title",
+				"title": map[string]interface{}{},
 			},
 		},
 	}

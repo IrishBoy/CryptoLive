@@ -57,7 +57,7 @@
                                             {
                                                 "type": "text",
                                                 "text": {
-                                                    "content": "Sold Coin",
+                                                    "content": "Coin Sold",
                                                     "link": null
                                                 },
                                                 "annotations": {
@@ -68,7 +68,7 @@
                                                     "code": false,
                                                     "color": "default"
                                                 },
-                                                "plain_text": "Sold Coin",
+                                                "plain_text": "Coin Sold",
                                                 "href": null
                                             }
                                         ],
@@ -86,7 +86,7 @@
                                 {
                                     "type": "text",
                                     "text": {
-                                        "content": "Sold Coin Column Name",
+                                        "content": "Coin Sold Column Name",
                                         "link": null
                                     },
                                     "annotations": {
@@ -97,7 +97,7 @@
                                         "code": false,
                                         "color": "default"
                                     },
-                                    "plain_text": "Sold Coin Column Name",
+                                    "plain_text": "Coin Sold Column Name",
                                     "href": null
                                 }
                             ],
@@ -192,7 +192,7 @@
                                 {
                                     "type": "text",
                                     "text": {
-                                        "content": "Sold Coin Amount Column Name",
+                                        "content": "Coin Sold Amount Column Name",
                                         "link": null
                                     },
                                     "annotations": {
@@ -203,7 +203,7 @@
                                         "code": false,
                                         "color": "default"
                                     },
-                                    "plain_text": "Sold Coin Amount Column Name",
+                                    "plain_text": "Coin Sold Amount Column Name",
                                     "href": null
                                 }
                             ],

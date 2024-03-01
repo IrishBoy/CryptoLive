@@ -36,6 +36,10 @@ func CreateURLAppendBlock(baseURL string, pageID string) string {
 	return fmt.Sprintf("%s/blocks/%s/children", baseURL, pageID)
 }
 
+func CreateURLCreateDatabase(baseURL string) string {
+	return fmt.Sprintf("%s/databases", baseURL)
+}
+
 // makeRequest is a common function for making HTTP requests.
 // SHoul be moved to common package
 func (n *Notion) makeRequest(method string, url string, payloadBytes []byte, headersType string) (*http.Response, error) {
@@ -94,7 +98,7 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 			continue
 		}
 
-		soldCoinSelect, ok := properties["Sold Coin"].(map[string]interface{})["select"]
+		soldCoinSelect, ok := properties["Coin Sold"].(map[string]interface{})["select"]
 		if !ok || soldCoinSelect == nil {
 			fmt.Println("Error: 'Coin bought' or 'select' is nil or not found")
 			continue
@@ -110,7 +114,7 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 			ID:                id,
 			Coin:              coin,
 			CurrentCointPrice: 0,
-			CoinAmount:        properties["Bought Amount"].(map[string]interface{})["number"].(float64),
+			BoughtAmount:      properties["Bought Amount"].(map[string]interface{})["number"].(float64),
 			Gain:              0,
 			PercentageGain:    0,
 			SoldCoin:          coinSold,
@@ -153,10 +157,10 @@ func (n *Notion) GetDatabases() ([]string, error) {
 	return ids, nil
 }
 
-func (n *Notion) UpdateDatabase(pageID string, coinPrice float64, profitValue float64) error {
+func (n *Notion) UpdateDatabase(pageID string, coinPrice float64, profit float64, profitValue float64) error {
 	url := CreateURLPages(n.NotionClient.BaseURL, pageID)
 
-	payload := n.NotionClient.UpdateTablePayload(coinPrice, profitValue)
+	payload := n.NotionClient.UpdateTablePayload(coinPrice, profit, profitValue)
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return err
@@ -220,5 +224,21 @@ func (n *Notion) UpdatePage(pageID string) (err error) {
 }
 
 func (n *Notion) CreateDatabase(pageID string) (err error) {
+	url := CreateURLCreateDatabase(n.NotionClient.BaseURL)
+	databaseBlock := n.NotionClient.CreateDatabasePayload(pageID)
+	databaseBytes, err := json.Marshal(databaseBlock)
+
+	if err != nil {
+		fmt.Println("Error marshaling database block to json:", err)
+		return err
+	}
+
+	_, err = n.makeRequest(http.MethodPost, url, databaseBytes, "new")
+	if err != nil {
+		fmt.Println("Error making request to create database:", err)
+		return err
+
+	}
+
 	return nil
 }
