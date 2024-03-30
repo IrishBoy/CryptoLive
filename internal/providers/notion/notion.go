@@ -75,6 +75,7 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 	var rows []domain.NotionTableRow
 	// Rewrtite so it will be done in parallel
 	for _, v := range resp["results"].([]interface{}) {
+		var opearationType string
 		id, ok := v.(map[string]interface{})["id"].(string)
 		if !ok {
 			fmt.Println("Error: 'id' not found or not a map")
@@ -84,6 +85,20 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 		if !ok {
 			fmt.Println("Error: 'properties' not found or not a map")
 			continue
+		}
+		titleSlice, ok := properties["ID"].(map[string]interface{})["title"].([]interface{})
+		if !ok {
+			fmt.Println("Error: 'title' not found or not a slice")
+			continue
+		}
+
+		for _, t := range titleSlice {
+			opearation, ok := t.(map[string]interface{})["text"].(map[string]interface{})["content"].(string)
+			if !ok {
+				fmt.Println("Error: 'text' or 'content' is nil or not found inside title")
+				continue
+			}
+			opearationType = opearation
 		}
 
 		coinSelect, ok := properties["Coin bought"].(map[string]interface{})["select"]
@@ -112,6 +127,7 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 
 		row := domain.NotionTableRow{
 			ID:                id,
+			OpeartionType:     opearationType,
 			Coin:              coin,
 			CurrentCointPrice: 0,
 			BoughtAmount:      properties["Bought Amount"].(map[string]interface{})["number"].(float64),
@@ -157,7 +173,7 @@ func (n *Notion) GetDatabases() ([]string, error) {
 	return ids, nil
 }
 
-func (n *Notion) UpdateDatabase(pageID string, coinPrice float64, profit float64, profitValue float64) error {
+func (n *Notion) UpdateDatabaseBuyPage(pageID string, coinPrice float64, profit float64, profitValue float64) error {
 	url := CreateURLPages(n.NotionClient.BaseURL, pageID)
 
 	payload := n.NotionClient.UpdateTablePayload(coinPrice, profit, profitValue)

@@ -2,6 +2,7 @@ package domain
 
 type NotionTableRow struct {
 	ID                string
+	OpeartionType     string
 	Coin              string
 	CurrentCointPrice float64
 	BoughtAmount      float64

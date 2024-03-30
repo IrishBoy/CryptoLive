@@ -32,6 +32,6 @@ func main() {
 	notionTables := notionHandler.New(notionInstance, binanceInstance, coinbaseInstance)
 
 	// Use the instance to update databases
-	// notionTables.UpdateDatabases()
+	notionTables.UpdateDatabases()
 	notionTables.CreateSpaces()
 }

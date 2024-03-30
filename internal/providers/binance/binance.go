@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"net/http"
 	"strconv"
 
@@ -33,25 +32,24 @@ func (b *Binance) makeRequest(method string, url string, payloadBytes []byte) (*
 
 func (b *Binance) GetCoinPrice(coin string) (float64, error) {
 	url := CreateURLCoinPrice(b.BinanceClient.BaseURL, coin)
-
 	resp, err := b.makeRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return math.NaN(), fmt.Errorf("error making request: %s", err)
+		return -1, fmt.Errorf("error making request: %s", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return math.NaN(), fmt.Errorf("non-OK status code - %s", resp.Status)
+		return -1, fmt.Errorf("non-OK status code - %s", resp.Status)
 	}
 
 	var result domain.CoinPriceResponse
 	body, err := ioutil.ReadAll(resp.Body)
 	if err := json.Unmarshal(body, &result); err != nil {
-		return math.NaN(), fmt.Errorf("cannot unmarshal JSON")
+		return -1, fmt.Errorf("cannot unmarshal JSON")
 	}
 	price, err := strconv.ParseFloat(result.Price, 64)
 	if err != nil {
-		return math.NaN(), fmt.Errorf("cannot get price")
+		return -1, fmt.Errorf("cannot get price")
 	}
 
 	return price, nil
