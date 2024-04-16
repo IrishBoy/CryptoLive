@@ -3,6 +3,7 @@
 package notion
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -56,7 +57,7 @@ func (n *Notion) makeRequest(method string, url string, payloadBytes []byte, hea
 }
 
 // GetDatabase retrieves data from a Notion database using the specified tableID.
-func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
+func (n *Notion) GetDatabase(ctx context.Context, tableID string) (domain.NotionTable, error) {
 	url := CreateURLDatabase(n.NotionClient.BaseURL, tableID)
 
 	response, err := n.makeRequest(http.MethodPost, url, nil, "new")
@@ -149,7 +150,7 @@ func (n *Notion) GetDatabase(tableID string) (domain.NotionTable, error) {
 }
 
 // GetDatabases retrieves a list of databases from Notion.
-func (n *Notion) GetDatabases() ([]string, error) {
+func (n *Notion) GetDatabases(ctx context.Context) ([]string, error) {
 
 	url := CreateURLDatabases(n.NotionClient.BaseURL)
 	response, err := n.makeRequest(http.MethodGet, url, nil, "old")
@@ -173,7 +174,7 @@ func (n *Notion) GetDatabases() ([]string, error) {
 	return ids, nil
 }
 
-func (n *Notion) UpdateDatabaseBuyPage(pageID string, coinPrice float64, profit float64, profitValue float64) error {
+func (n *Notion) UpdateDatabaseBuyPage(ctx context.Context, pageID string, coinPrice float64, profit float64, profitValue float64) error {
 	url := CreateURLPages(n.NotionClient.BaseURL, pageID)
 
 	payload := n.NotionClient.UpdateTablePayload(coinPrice, profit, profitValue)
@@ -190,7 +191,7 @@ func (n *Notion) UpdateDatabaseBuyPage(pageID string, coinPrice float64, profit 
 	return nil
 }
 
-func (n *Notion) Search() (domain.SearchResponse, error) {
+func (n *Notion) Search(ctx context.Context) (domain.SearchResponse, error) {
 	url := CreateURLSearch(n.NotionClient.BaseURL)
 	response, err := n.makeRequest(http.MethodPost, url, nil, "new")
 
@@ -220,7 +221,7 @@ func (n *Notion) GetColumns(pageID string) ([]string, error) {
 // If a user gives us an access to some page we can
 // Create a pattern for the page so he can cofigure column names
 // Create databse as a child page -> So a user will not need to do this
-func (n *Notion) UpdatePage(pageID string) (err error) {
+func (n *Notion) UpdatePage(ctx context.Context, pageID string) (err error) {
 	url := CreateURLAppendBlock(n.NotionClient.BaseURL, pageID)
 	pageBlock, err := os.ReadFile("internal/domain/page_template.json")
 
@@ -239,7 +240,7 @@ func (n *Notion) UpdatePage(pageID string) (err error) {
 	return nil
 }
 
-func (n *Notion) CreateDatabase(pageID string) (err error) {
+func (n *Notion) CreateDatabase(ctx context.Context, pageID string) (err error) {
 	url := CreateURLCreateDatabase(n.NotionClient.BaseURL)
 	databaseBlock := n.NotionClient.CreateDatabasePayload(pageID)
 	databaseBytes, err := json.Marshal(databaseBlock)

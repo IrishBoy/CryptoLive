@@ -26,3 +26,11 @@ func AddHeaders(headers map[string]string, request *http.Request) *http.Request 
 	}
 	return request
 }
+
+func CalculateAverage(list []float64) float64 {
+	total := 0.0
+	for _, num := range list {
+		total += num
+	}
+	return total / float64(len(list))
+}

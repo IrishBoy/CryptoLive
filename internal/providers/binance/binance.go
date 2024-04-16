@@ -1,6 +1,7 @@
 package binance
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -30,7 +31,7 @@ func (b *Binance) makeRequest(method string, url string, payloadBytes []byte) (*
 	return client.Do(req)
 }
 
-func (b *Binance) GetCoinPrice(coin string) (float64, error) {
+func (b *Binance) GetCoinPrice(ctx context.Context, coin string) (float64, error) {
 	url := CreateURLCoinPrice(b.BinanceClient.BaseURL, coin)
 	resp, err := b.makeRequest(http.MethodGet, url, nil)
 	if err != nil {

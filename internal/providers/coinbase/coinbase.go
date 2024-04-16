@@ -1,6 +1,7 @@
 package coinbase
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -30,7 +31,7 @@ func (b *Coinbase) makeRequest(method string, url string, payloadBytes []byte) (
 	return client.Do(req)
 }
 
-func (b *Coinbase) GetCoinPrice(coin string) (float64, error) {
+func (b *Coinbase) GetCoinPrice(ctx context.Context, coin string) (float64, error) {
 	url := CreateURLCoinPrice(b.CoinbaseClient.BaseURL, coin)
 	resp, err := b.makeRequest(http.MethodGet, url, nil)
 	if err != nil {

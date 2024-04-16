@@ -1,173 +1,213 @@
 package notion
 
 import (
+	"context"
 	"fmt"
+	"sync"
 
 	"github.com/IrishBoy/CryptoLive/internal/domain"
 	"github.com/IrishBoy/CryptoLive/internal/handlers/common"
 )
 
 type NotionAPI interface {
-	GetDatabases() ([]string, error)
-	GetDatabase(tableID string) (domain.NotionTable, error)
-	UpdateDatabaseBuyPage(pageID string, coinPrice float64, profit float64, profitValue float64) error
-	Search() (domain.SearchResponse, error)
-	UpdatePage(pageID string) (err error)
-	CreateDatabase(pageID string) (err error)
+	GetDatabases(ctx context.Context) ([]string, error)
+	GetDatabase(ctx context.Context, tableID string) (domain.NotionTable, error)
+	UpdateDatabaseBuyPage(ctx context.Context, pageID string, coinPrice, profit, profitValue float64) error
+	Search(ctx context.Context) (domain.SearchResponse, error)
+	UpdatePage(ctx context.Context, pageID string) error
+	CreateDatabase(ctx context.Context, pageID string) error
 }
 
 type BinanceAPI interface {
-	GetCoinPrice(coin string) (float64, error)
+	GetCoinPrice(ctx context.Context, coin string) (float64, error)
 }
+
 type CoinbaseAPI interface {
-	GetCoinPrice(coin string) (float64, error)
+	GetCoinPrice(ctx context.Context, coin string) (float64, error)
+}
+
+type StorageAPI interface {
+	SetCoinPriceBySource(ctx context.Context, source string, price float64, coin string) error
+	GetAverageCoinPrice(ctx context.Context, token string) (float64, error)
 }
 
 type NotionTables struct {
 	notionProvider   NotionAPI
 	binanceProvider  BinanceAPI
 	coinbaseProvider CoinbaseAPI
+	storageProvider  StorageAPI
 }
 
-func (n *NotionTables) UpdateDatabases() {
-	tables := []domain.NotionTable{}
-	coins := make(map[string]bool)
-	ids, err := n.notionProvider.GetDatabases()
+func (n *NotionTables) UpdateDatabases(ctx context.Context) error {
+	ids, err := n.notionProvider.GetDatabases(ctx)
 	if err != nil {
-		fmt.Println("Error getting databases")
+		return fmt.Errorf("error getting databases: %v", err)
 	}
-	// Rewrtite so it will be done in parallel
+
+	var wg sync.WaitGroup
+	errCh := make(chan error, len(ids))
+
 	for _, databaseID := range ids {
-		table, err := n.notionProvider.GetDatabase(databaseID)
-		if err != nil {
-			fmt.Println("Error getting database:")
-		}
-		tables = append(tables, table)
-		for _, row := range table.Rows {
-			if row.Coin != "USDT" {
-				common.AddString(coins, row.Coin)
-			}
-			// switch row.OpeartionType {
-			// case "Buy":
-			// 	common.AddString(coins, row.SoldCoin)
-			// default:
-			// 	continue
-			// }
-		}
-
-	}
-
-	uniqueCoins := common.GetUniqueValues(coins)
-	coinsPrices := n.GetCoinsPrices(uniqueCoins)
-
-	for databaseID, database := range tables {
-		// Rewrtite so it will be done in parallel
-
-		for rowID, row := range database.Rows {
-			switch row.OpeartionType {
-			case "Buy":
-				updatedRow, err := UpdateCoinPrice(row, coinsPrices)
-				if err != nil {
-					fmt.Println("Error updating coin price")
-				}
-				updatedRow, err = CoinGain(updatedRow)
-				if err != nil {
-					fmt.Println("Error updating gain")
-				}
-				updatedRow, err = CoinPercentageGain(updatedRow)
-				if err != nil {
-					fmt.Println("Error updating percetage gain")
-				}
-				tables[databaseID].Rows[rowID] = updatedRow
-				err = n.notionProvider.UpdateDatabaseBuyPage(updatedRow.ID, updatedRow.CurrentCointPrice, updatedRow.Gain, updatedRow.PercentageGain)
-				if err != nil {
-					fmt.Println("Error updating database:", databaseID)
-				}
-			default:
-				continue
-
+		wg.Add(1)
+		go func(id string) {
+			defer wg.Done()
+			table, err := n.notionProvider.GetDatabase(ctx, id)
+			if err != nil {
+				errCh <- fmt.Errorf("error getting database %s: %v", id, err)
+				return
 			}
 
-		}
+			for _, row := range table.Rows {
+				if row.Coin != "USDT" {
+					coinPrice, err := n.storageProvider.GetAverageCoinPrice(ctx, row.Coin)
+					if err != nil {
+						errCh <- fmt.Errorf("error getting average coin price for %s: %v", row.Coin, err)
+						return
+					}
 
+					if coinPrice == 0 {
+						price, err := n.binanceProvider.GetCoinPrice(ctx, row.Coin)
+						if err != nil {
+							errCh <- fmt.Errorf("error getting coin price from Binance for %s: %v", row.Coin, err)
+							return
+						}
+
+						if err := n.storageProvider.SetCoinPriceBySource(ctx, "binance", price, row.Coin); err != nil {
+							errCh <- fmt.Errorf("error setting price from Binance for %s: %v", row.Coin, err)
+							return
+						}
+
+						price, err = n.coinbaseProvider.GetCoinPrice(ctx, row.Coin)
+						if err != nil {
+							errCh <- fmt.Errorf("error getting coin price from Coinbase for %s: %v", row.Coin, err)
+							return
+						}
+
+						if err := n.storageProvider.SetCoinPriceBySource(ctx, "coinBase", price, row.Coin); err != nil {
+							errCh <- fmt.Errorf("error setting price from Coinbase for %s: %v", row.Coin, err)
+							return
+						}
+
+						coinPrice, err = n.storageProvider.GetAverageCoinPrice(ctx, row.Coin)
+						if err != nil {
+							errCh <- fmt.Errorf("error getting average coin price for %s: %v", row.Coin, err)
+							return
+						}
+					}
+
+					if err := n.UpdateDatabaseRow(ctx, row, coinPrice); err != nil {
+						errCh <- fmt.Errorf("error updating database row: %v", err)
+						return
+					}
+				}
+			}
+		}(databaseID)
 	}
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	var errors []error
+	for err := range errCh {
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf("multiple errors occurred: %v", errors)
+	}
+
+	return nil
 }
 
-func (n *NotionTables) CreateSpaces() {
-	// Get pages without child databases
-	// Create blocks with parameters
-	// Create databases
-	searchNotion, _ := n.notionProvider.Search()
+func (n *NotionTables) UpdateDatabaseRow(ctx context.Context, row domain.NotionTableRow, currentCoinPrice float64) error {
+	switch row.OpeartionType {
+	case "Buy":
+		updatedRow, err := UpdateCoinPrice(row, currentCoinPrice)
+		if err != nil {
+			return fmt.Errorf("error updating coin price: %v", err)
+		}
+		updatedRow, err = CoinGain(updatedRow)
+		if err != nil {
+			return fmt.Errorf("error updating gain: %v", err)
+		}
+		updatedRow, err = CoinPercentageGain(updatedRow)
+		if err != nil {
+			return fmt.Errorf("error updating percentage gain: %v", err)
+		}
+		fmt.Println(updatedRow)
+		if err := n.notionProvider.UpdateDatabaseBuyPage(ctx, updatedRow.ID, updatedRow.CurrentCointPrice, updatedRow.Gain, updatedRow.PercentageGain); err != nil {
+			return fmt.Errorf("error updating database buy page: %v", err)
+		}
+	default:
+		// Handle other cases
+	}
+	return nil
+}
+
+func (n *NotionTables) CreateSpaces(ctx context.Context) error {
+	searchNotion, err := n.notionProvider.Search(ctx)
+	if err != nil {
+		return fmt.Errorf("error searching Notion: %v", err)
+	}
+
 	parentPages := n.FilterParentPages(searchNotion)
-	for _, pageId := range parentPages {
-		err := n.notionProvider.UpdatePage(pageId)
-		if err != nil {
-			fmt.Println("Error updating page:", err)
+	for _, pageID := range parentPages {
+		if err := n.notionProvider.UpdatePage(ctx, pageID); err != nil {
+			return fmt.Errorf("error updating page %s: %v", pageID, err)
 		}
-		err = n.notionProvider.CreateDatabase(pageId)
-		if err != nil {
-			fmt.Println("Error creaing database:", err)
+		if err := n.notionProvider.CreateDatabase(ctx, pageID); err != nil {
+			return fmt.Errorf("error creating database for page %s: %v", pageID, err)
 		}
 	}
 
+	return nil
 }
 
-// Return only pages that
-// 1) Are not pages of a database already  -> Check parent type
-// 2) don't have databse as a child -> ?????
 func (n *NotionTables) FilterParentPages(allPages domain.SearchResponse) []string {
 	parentPages := []string{}
-	databases_parents := []string{}
+	databasesParents := []string{}
 	for _, page := range allPages.Results {
 		if page.Parent.Type == "page_id" && page.Object != "database" {
-			//add only pages that are not ones of a database already
 			parentPages = append(parentPages, page.ID)
 		}
 		if page.Parent.Type == "workspace" {
 			parentPages = append(parentPages, page.ID)
 		}
 		if page.Object == "database" {
-			databases_parents = append(databases_parents, page.Parent.PageID)
+			databasesParents = append(databasesParents, page.Parent.PageID)
 		}
-		// TODO: Check all the tree
 	}
-	new_pages := common.FilterArray(parentPages, databases_parents)
-
-	return new_pages
-
+	newPages := common.FilterArray(parentPages, databasesParents)
+	return newPages
 }
 
-func (n *NotionTables) GetCoinsPrices(coins []string) map[string]float64 {
+func (n *NotionTables) GetCoinsPrices(ctx context.Context, coins []string) (map[string]float64, error) {
 	coinsPrices := make(map[string]float64)
-	// Rewrtite so it will be done in parallel
 	for _, coin := range coins {
-		var price float64
-		price, err := n.binanceProvider.GetCoinPrice(coin)
+		price, err := n.binanceProvider.GetCoinPrice(ctx, coin)
 		if err != nil {
-			fmt.Printf("Error getting coin price from binance: %s\n", coin)
-			price, err = n.coinbaseProvider.GetCoinPrice(coin)
+			fmt.Printf("Error getting coin price from Binance for %s: %v\n", coin, err)
+			price, err = n.coinbaseProvider.GetCoinPrice(ctx, coin)
 			if err != nil {
-				fmt.Printf("Error getting coin price from coinbase: %s\n", coin)
+				fmt.Printf("Error getting coin price from Coinbase for %s: %v\n", coin, err)
+				continue
 			}
 		}
-
 		coinsPrices[coin] = price
 	}
-	return coinsPrices
+	return coinsPrices, nil
 }
 
-// write verification on no coin price
-func UpdateCoinPrice(row domain.NotionTableRow, coins map[string]float64) (domain.NotionTableRow, error) {
-	row.CurrentCointPrice = float64(coins[row.Coin])
-
+func UpdateCoinPrice(row domain.NotionTableRow, coinPrice float64) (domain.NotionTableRow, error) {
+	row.CurrentCointPrice = coinPrice
 	return row, nil
 }
 
-// write verification on row.SoldAmoint == 0
 func CoinPercentageGain(row domain.NotionTableRow) (domain.NotionTableRow, error) {
 	row.PercentageGain = float64(row.Gain / row.SoldAmount)
 	return row, nil
-
 }
 
 func CoinGain(row domain.NotionTableRow) (domain.NotionTableRow, error) {
@@ -177,6 +217,6 @@ func CoinGain(row domain.NotionTableRow) (domain.NotionTableRow, error) {
 	return row, nil
 }
 
-func New(notionProvider NotionAPI, binanceProvider BinanceAPI, coinbaseProvider CoinbaseAPI) *NotionTables {
-	return &NotionTables{notionProvider: notionProvider, binanceProvider: binanceProvider, coinbaseProvider: coinbaseProvider}
+func New(notionProvider NotionAPI, binanceProvider BinanceAPI, coinbaseProvider CoinbaseAPI, storageProvider StorageAPI) *NotionTables {
+	return &NotionTables{notionProvider: notionProvider, binanceProvider: binanceProvider, coinbaseProvider: coinbaseProvider, storageProvider: storageProvider}
 }
